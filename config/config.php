@@ -1,53 +1,52 @@
-<?php
 /**
- * Configuration file
+ * File di configurazione
  *
- * This file contains global configuration settings for the application.
+ * Questo file contiene le impostazioni globali per l'applicazione.
  */
 
-// Start output buffering at the very beginning
+// Avvio il buffering dell'output all'inizio
 ob_start();
 
-// Start session if not already started
+// Avvio la sessione se non è già attiva
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Application configuration
+// Configurazione dell'applicazione
 define('APP_NAME', 'ElectroCharge');
 define('APP_URL', 'http://localhost/ev-charging-system');
 define('ADMIN_EMAIL', 'admin@example.com');
 
-// Set default timezone
+// Imposto il fuso orario predefinito
 date_default_timezone_set('UTC');
 
-// Error reporting settings
-// In production, set error_reporting to E_ALL and display_errors to 0
+// Impostazioni per la gestione degli errori
+// In produzione, impostare error_reporting a E_ALL e display_errors a 0
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Define paths
+// Definizione dei percorsi
 define('ROOT_PATH', dirname(__DIR__));
 define('INCLUDES_PATH', ROOT_PATH . '/includes/');
 define('PAGES_PATH', ROOT_PATH . '/pages/');
 define('ADMIN_PATH', ROOT_PATH . '/admin/');
 define('ASSETS_PATH', ROOT_PATH . '/assets/');
 
-// Include database connection
+// Includo la connessione al database
 require_once ROOT_PATH . '/config/database.php';
 
-// Include utility functions
+// Includo le funzioni di utilità
 require_once INCLUDES_PATH . 'functions.php';
 
-// Initialize application settings
+// Inizializzo le impostazioni dell'applicazione
 $settings = [
-    'booking_duration_minutes' => 60, // Default booking duration in minutes
-    'booking_expiry_minutes' => 10,   // Minutes after which a booking expires if user doesn't show up
-    'price_per_kwh' => 0.35,          // Price per kWh in currency
-    'min_booking_interval' => 30,     // Minimum booking interval in minutes
+    'booking_duration_minutes' => 60, // Durata predefinita della prenotazione in minuti
+    'booking_expiry_minutes' => 10,   // Minuti dopo i quali una prenotazione scade se l'utente non si presenta
+    'price_per_kwh' => 0.35,         // Prezzo per kWh in valuta
+    'min_booking_interval' => 30,     // Intervallo minimo di prenotazione in minuti
 ];
 
-// User session handling
+// Gestione della sessione utente
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
@@ -63,7 +62,7 @@ function requireAdmin() {
         redirect('login.php');
     }
 
-    // Check if user is in Admins table
+    // Controllo se l'utente è nella tabella Admins
     $conn = getDbConnection();
     $stmt = $conn->prepare("SELECT admin_id FROM Admins WHERE user_id = :user_id");
     $stmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
@@ -71,7 +70,7 @@ function requireAdmin() {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$result) {
-        setFlashMessage('error', 'You do not have permission to access that page.');
+        setFlashMessage('error', 'Non hai i permessi per accedere a questa pagina.');
         redirect('index.php');
     }
 }
@@ -82,9 +81,9 @@ function logout() {
     redirect('login.php');
 }
 
-// Redirect function
+// Funzione di reindirizzamento
 function redirect($page) {
-    // Ensure no output has been sent
+    // Controllo che non sia già stato inviato output
     if (!headers_sent()) {
         header("Location: " . APP_URL . "/" . $page);
         exit;
@@ -94,7 +93,7 @@ function redirect($page) {
     }
 }
 
-// Flash messaging system
+// Sistema di messaggi flash
 function setFlashMessage($type, $message) {
     $_SESSION['flash'] = [
         'type' => $type,
@@ -111,7 +110,7 @@ function getFlashMessage() {
     return null;
 }
 
-// CSRF protection
+// Protezione CSRF
 function generateCsrfToken() {
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -123,7 +122,7 @@ function validateCsrfToken($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
-// Function to sanitize input data
+// Funzione per sanificare i dati di input
 function sanitizeInput($data) {
     $data = trim($data);
     $data = stripslashes($data);
@@ -131,7 +130,7 @@ function sanitizeInput($data) {
     return $data;
 }
 
-// End output buffering only if it hasn't been ended already
+// Termino il buffering dell'output solo se non è già stato terminato
 if (ob_get_level() > 0) {
     ob_end_flush();
 }
